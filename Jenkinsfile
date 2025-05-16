@@ -2,11 +2,11 @@ pipeline {
     agent any
 
     environment {
-        PROD_USER = 'root'
-        PROD_HOST = 'your-server-ip'
-        DEPLOY_DIR = '/var/www/backend'
-        JAR_NAME = 'your-app.jar'
-        PORT = '8080'
+        PROD_HOST  = credentials('DO_HOST')
+        PROD_USER  = credentials('DO_USER')
+        DEPLOY_DIR = '/www/wwwroot/CITSNVN/jenkins/sscSpringbootBackend'
+        JAR_NAME   = 'quizbackend-1.0.jar'
+        PORT       = '3086'
     }
 
     stages {

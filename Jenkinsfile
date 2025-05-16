@@ -12,7 +12,7 @@ pipeline {
     stages {
         stage('Clone Repository') {
             steps {
-                git url: 'https://github.com/Saddam-Hossen/JenkinsSpringbootProjectBackend'
+                 git branch: 'main', url: 'https://github.com/Saddam-Hossen/JenkinsSpringbootProjectBackend'
             }
         }
 

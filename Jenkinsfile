@@ -26,8 +26,8 @@ pipeline {
             steps {
                 withCredentials([sshUserPrivateKey(credentialsId: 'DO_SSH_KEY', keyFileVariable: 'SSH_KEY')]) {
                     script {
-                        def scpCommand = '''"C:/Program Files/Git/bin/bash.exe" -c "scp -o StrictHostKeyChecking=no -i '${SSH_KEY}' target/${JAR_NAME} ${PROD_USER}@${PROD_HOST}:${DEPLOY_DIR}/${JAR_NAME}"'''
-                        bat(script: scpCommand)
+                        def scpCmd = "\"C:/Program Files/Git/bin/bash.exe\" -c \"scp -o StrictHostKeyChecking=no -i '${SSH_KEY}' target/${JAR_NAME} ${PROD_USER}@${PROD_HOST}:${DEPLOY_DIR}/${JAR_NAME}\""
+                        bat script: scpCmd
                     }
                 }
             }
@@ -37,13 +37,8 @@ pipeline {
             steps {
                 withCredentials([sshUserPrivateKey(credentialsId: 'DO_SSH_KEY', keyFileVariable: 'SSH_KEY')]) {
                     script {
-                        def sshCommand = '''"C:/Program Files/Git/bin/bash.exe" -c "ssh -o StrictHostKeyChecking=no -i '${SSH_KEY}' ${PROD_USER}@${PROD_HOST} '
-                            cd ${DEPLOY_DIR};
-                            PID=\\$(lsof -t -i:${PORT}) && kill -9 \\$PID || echo Not running;
-                            nohup java -Xms32m -Xmx64m -jar ${JAR_NAME} --server.port=${PORT} > app.log 2>&1 &
-                            echo Spring Boot App started on port ${PORT}
-                        '"'''
-                        bat(script: sshCommand)
+                        def sshCmd = "\"C:/Program Files/Git/bin/bash.exe\" -c \"ssh -o StrictHostKeyChecking=no -i '${SSH_KEY}' ${PROD_USER}@${PROD_HOST} 'cd ${DEPLOY_DIR}; PID=\\$(lsof -t -i:${PORT}) && kill -9 \\$PID || echo Not running; nohup java -Xms32m -Xmx64m -jar ${JAR_NAME} --server.port=${PORT} > app.log 2>&1 &'\""
+                        bat script: sshCmd
                     }
                 }
             }

@@ -12,13 +12,13 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/Saddam-Hossen/JenkinsSpringbootProjectBackend.git'
+                git branch: 'main', url: 'https://github.com/Saddam-Hossen/JenkinsSpringBootApp.git'
             }
         }
 
-        stage('Build Spring Boot') {
+        stage('Build with Maven') {
             steps {
-                bat './mvnw clean package -DskipTests'
+                bat 'mvn clean package -DskipTests'
             }
         }
 
@@ -26,11 +26,10 @@ pipeline {
             steps {
                 withCredentials([sshUserPrivateKey(credentialsId: 'DO_SSH_KEY', keyFileVariable: 'SSH_KEY')]) {
                     script {
-                        def deployCmd = """
-                            "C:\\Program Files\\Git\\bin\\bash.exe" -c \\
-                            "scp -o StrictHostKeyChecking=no -i \\"$SSH_KEY\\" target/${JAR_NAME} ${PROD_USER}@${PROD_HOST}:${DEPLOY_DIR}/${JAR_NAME}"
+                        def scpCommand = """
+                        "C:/Program Files/Git/bin/bash.exe" -c 'scp -o StrictHostKeyChecking=no -i "${SSH_KEY}" target/${JAR_NAME} ${PROD_USER}@${PROD_HOST}:${DEPLOY_DIR}/${JAR_NAME}"'
                         """
-                        bat deployCmd
+                        bat(script: scpCommand)
                     }
                 }
             }
@@ -40,19 +39,15 @@ pipeline {
             steps {
                 withCredentials([sshUserPrivateKey(credentialsId: 'DO_SSH_KEY', keyFileVariable: 'SSH_KEY')]) {
                     script {
-                        def bashCmd = """#!/bin/bash
-                            ssh -o StrictHostKeyChecking=no -i "$SSH_KEY" ${PROD_USER}@${PROD_HOST} << 'EOF'
-                                echo "🔁 Stopping any running app on port ${PORT}..."
-                                PID=\$(lsof -t -i:${PORT}) && kill -9 \$PID || echo "No app running on port ${PORT}"
-
-                                echo "🚀 Starting app with nohup..."
-                                cd ${DEPLOY_DIR}
-                                nohup java -Xms32m -Xmx64m -jar ${JAR_NAME} --server.port=${PORT} > app.log 2>&1 &
-                                echo "✅ App deployed to port ${PORT}"
-                            EOF
+                        def sshCommand = """
+                        "C:/Program Files/Git/bin/bash.exe" -c 'ssh -o StrictHostKeyChecking=no -i "${SSH_KEY}" ${PROD_USER}@${PROD_HOST} "
+                            cd ${DEPLOY_DIR};
+                            PID=\\$(lsof -t -i:${PORT}) && kill -9 \\$PID || echo Not running;
+                            nohup java -Xms32m -Xmx64m -jar ${JAR_NAME} --server.port=${PORT} > app.log 2>&1 &
+                            echo Spring Boot App started on port ${PORT}"
+                        '
                         """
-                        writeFile file: 'start_app.sh', text: bashCmd
-                        bat '"C:\\Program Files\\Git\\bin\\bash.exe" start_app.sh'
+                        bat(script: sshCommand)
                     }
                 }
             }
@@ -61,11 +56,10 @@ pipeline {
 
     post {
         success {
-            echo "✅ Spring Boot deployed and started successfully on port ${PORT}!"
+            echo '✅ Spring Boot app deployed and started successfully!'
         }
-
         failure {
-            echo "❌ Spring Boot deployment failed."
+            echo '❌ Spring Boot deployment failed.'
         }
     }
 }
